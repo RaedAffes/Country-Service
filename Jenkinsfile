@@ -2,15 +2,15 @@ pipeline {
     agent any
  
  tools {
-    jdk 'JDK21'
-    maven 'Maven'
+    
+    maven 'mymaven'
 }
 
     stages {
 
         stage('Checkout code') {
             steps {
-                git branch: 'master',
+                git branch: 'main',
                     url: 'https://github.com/RaedAffes/Country-Service.git'
             }
         }
