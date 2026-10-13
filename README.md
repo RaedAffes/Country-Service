@@ -1,4 +1,4 @@
-# country-service
+# country-service 1
 
 Micro service REST de gestion de pays, développé avec **Spring Boot**.
 Projet d'atelier illustrant la création d'une application autonome packagée en `.jar`.
