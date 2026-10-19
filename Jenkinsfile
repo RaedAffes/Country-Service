@@ -1,10 +1,9 @@
 pipeline {
     agent any
- 
- tools {
-    
-    maven 'mymaven' 
-}
+
+    tools {
+        maven 'mymaven'
+    }
 
     stages {
 
@@ -27,16 +26,16 @@ pipeline {
             }
 
             post {
-                success {
+                always {
                     junit allowEmptyResults: true,
                           testResults: '**/target/surefire-reports/*.xml'
                 }
             }
         }
 
-        stage('Package code') {
+        stage('Package & Deploy to Nexus') {
             steps {
-                sh 'mvn package'
+                sh 'mvn deploy'
             }
         }
     }
