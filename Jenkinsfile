@@ -35,7 +35,11 @@ pipeline {
 
         stage('Package & Deploy to Nexus') {
             steps {
-                sh 'mvn deploy'
+                sh '''
+                    WIN_IP=$(ip route | awk '/default/ {print $3}')
+                    echo "Nexus host: $WIN_IP"
+                    mvn deploy -DaltDeploymentRepository=nexus-snapshots::default::http://$WIN_IP:8081/repository/maven-snapshots/
+                '''
             }
         }
     }
