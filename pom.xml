@@ -29,6 +29,19 @@
 	<properties>
 		<java.version>21</java.version>
 	</properties>
+
+	<!-- AJOUT 1 : dépôt Nexus pour mvn deploy -->
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<url>http://localhost:8081/repository/maven-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<url>http://localhost:8081/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -92,7 +105,77 @@
 						</exclude>
 					</excludes>
 				</configuration>
-			</plugin>       
+			</plugin>
+
+			<!-- AJOUT 2 : JaCoCo (génère target/site/jacoco/) -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.13</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals><goal>prepare-agent</goal></goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals><goal>report</goal></goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- AJOUT 3 : compresser les rapports JaCoCo et Surefire en .zip -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>zip-reports</id>
+						<phase>package</phase>
+						<goals><goal>run</goal></goals>
+						<configuration>
+							<target>
+								<zip destfile="${project.build.directory}/${project.artifactId}-${project.version}-jacoco-report.zip"
+									 basedir="${project.build.directory}/site/jacoco"
+									 whenempty="create"/>
+								<zip destfile="${project.build.directory}/${project.artifactId}-${project.version}-surefire-reports.zip"
+									 basedir="${project.build.directory}/surefire-reports"
+									 whenempty="create"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- AJOUT 4 : attacher les .zip pour qu'ils soient envoyés par mvn deploy -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.6.0</version>
+				<executions>
+					<execution>
+						<id>attach-reports</id>
+						<phase>package</phase>
+						<goals><goal>attach-artifact</goal></goals>
+						<configuration>
+							<artifacts>
+								<artifact>
+									<file>${project.build.directory}/${project.artifactId}-${project.version}-jacoco-report.zip</file>
+									<type>zip</type>
+									<classifier>jacoco-report</classifier>
+								</artifact>
+								<artifact>
+									<file>${project.build.directory}/${project.artifactId}-${project.version}-surefire-reports.zip</file>
+									<type>zip</type>
+									<classifier>surefire-reports</classifier>
+								</artifact>
+							</artifacts>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>	
 </project>
