@@ -7,7 +7,7 @@ services:
     expose:
       - '8082'
   my-country-service2:
-    build: .
+    build: . 
     container_name: my-country-service2
     ports:
       - '8084:8082'
