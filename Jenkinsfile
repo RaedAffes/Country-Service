@@ -29,18 +29,18 @@ pipeline {
             }
         }
 
-        stage('Deploy to kubernetes') {
-            steps {
-                script {
-                    kubeconfig(credentialsId: 'kubeconfig-file') {
-                        sh 'sed -i "s|image: .*|image: raedaffes/country-service-my-country-service2:$BUILD_NUMBER|" deployment.yaml'
-                        sh 'kubectl apply -f deployment.yaml'
-                        sh 'kubectl apply -f service.yaml'
-                        sh 'kubectl rollout status deployment/my-country-service'
-                    }
-                }
+    stage('Deploy to Kubernetes') {
+    steps {
+        script {
+            kubeconfig(credentialsId: 'kubeconfig-file') {
+                sh 'sed -i "s|image: .*|image: raedaffes/country-service-my-country-service2:$BUILD_NUMBER|" deployment.yaml'
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
+                sh 'kubectl rollout status deployment/my-country-service'
             }
         }
+    }
+}
     }
 
    
