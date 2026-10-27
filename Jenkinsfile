@@ -20,7 +20,7 @@ pipeline {
 
         stage('Build Dockerfile') {
             steps {
-                sh 'docker build . -t raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
+                sh 'docker build --no-cache . -t raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
 
                 withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
                     sh 'echo "$dockerhubpwd" | docker login -u raedaffes --password-stdin'
