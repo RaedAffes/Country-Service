@@ -1,46 +1,47 @@
+```groovy
 pipeline {
     agent any
 
-    tools { 
-        maven 'mymaven'
+    tools {
+        maven 'Mymaven'
     }
 
     stages {
-
         stage('Checkout code') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/RaedAffes/Country-Service.git'
+                git branch: 'main', url: 'https://github.com/RaedAffes/country-service.git'
             }
         }
 
-        stage('Compile code') {
+        stage('Build maven') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn clean install'
             }
         }
 
-        stage('Test code') {
+        stage('Build Dockerfile') {
             steps {
-                sh 'mvn test'
-            }
+                sh 'docker build . -t raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
 
-            post {
-                always {
-                    junit allowEmptyResults: true,
-                          testResults: '**/target/surefire-reports/*.xml'
+                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                    sh 'echo "$dockerhubpwd" | docker login -u raedaffes --password-stdin'
+                    sh 'docker push raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
                 }
             }
         }
 
-        stage('Package & Deploy to Nexus') {
+        stage('Deploy to kubernetes') {
             steps {
-                sh '''
-                    WIN_IP=$(ip route | awk '/default/ {print $3}')
-                    echo "Nexus host: $WIN_IP"
-                    mvn deploy -DaltDeploymentRepository=nexus-snapshots::default::http://$WIN_IP:8081/repository/maven-snapshots/
-                '''
+                script {
+                    kubeconfig(credentialsId: 'kubeconfig-file', serverUrl: '') {
+                        sh 'kubectl apply -f deployment.yaml'
+                        sh 'kubectl apply -f service.yaml'
+                        sh 'kubectl set image deployment/country-service country-service=raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
+                        sh 'kubectl rollout status deployment/country-service'
+                    }
+                }
             }
         }
     }
 }
+```
