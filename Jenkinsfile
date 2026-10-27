@@ -32,15 +32,20 @@ pipeline {
         stage('Deploy to kubernetes') {
             steps {
                 script {
-                    kubeconfig(credentialsId: 'kubeconfig-file', serverUrl: '') {
+                    kubeconfig(credentialsId: 'kubeconfig-file') {
+                        sh 'sed -i "s|image: .*|image: raedaffes/country-service-my-country-service2:$BUILD_NUMBER|" deployment.yaml'
                         sh 'kubectl apply -f deployment.yaml'
                         sh 'kubectl apply -f service.yaml'
-                        sh 'kubectl set image deployment/country-service country-service=raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
-                        sh 'kubectl rollout status deployment/country-service'
+                        sh 'kubectl rollout status deployment/my-country-service'
                     }
                 }
             }
         }
     }
-}
 
+    post {
+        always {
+            sh 'docker logout || true'
+        }
+    }
+}
