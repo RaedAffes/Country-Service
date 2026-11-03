@@ -9,13 +9,13 @@
 
   vars:
     image_repo: raedaffes/country-service-my-country-service2
-    image_tag: latest          # remplacé par Jenkins (-e image_tag=BUILD_NUMBER)
+    image_tag: latest
 
   tasks:
     - name: Log in to Docker Hub
       community.docker.docker_login:
-        username: "{{ vault_dockerhub_username }}"
-        password: "{{ vault_dockerhub_password }}"
+        username: "{{ dockerhub_username }}"
+        password: "{{ dockerhub_password }}"
         reauthorize: true
       no_log: true
 
