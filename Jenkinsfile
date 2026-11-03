@@ -21,7 +21,7 @@ pipeline {
         stage('Deploy with Ansible') {
             steps {
                 withCredentials([string(credentialsId: 'DOCKER_HUB', variable: 'VAULT_PASS')]) {
-                    kubeconfig(credentialsId: 'kubeconfig-file') {
+                    withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
                         sh '''
                             umask 077
                             trap 'rm -f vault_pass.txt' EXIT
