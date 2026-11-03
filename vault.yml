@@ -1,3 +1,0 @@
-echo "dockerhub_username: raedaffes" > vault.yml
-echo "dockerhub_password: DOCKER_HUB" >> vault.yml
-ansible-vault encrypt vault.yml
