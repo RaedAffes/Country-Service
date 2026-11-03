@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         maven 'mymaven'
-    } 
+    }
 
     stages {
         stage('Checkout code') {
@@ -13,35 +13,30 @@ pipeline {
         }
 
         stage('Build maven') {
-            steps { 
+            steps {
                 sh 'mvn clean install'
             }
         }
 
-        stage('Build Dockerfile') {
+        stage('Deploy using Ansible playbook') {
             steps {
-                sh 'docker build --no-cache . -t raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
-
-                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                    sh 'echo "$dockerhubpwd" | docker login -u raedaffes --password-stdin'
-                    sh 'docker push raedaffes/country-service-my-country-service2:$BUILD_NUMBER'
+                kubeconfig(credentialsId: 'kubeconfig-file') {
+                    ansiblePlaybook(
+                        installation: 'myansible',
+                        playbook: 'playbookCICD.yml',
+                        inventory: 'inventory.ini',
+                        vaultCredentialsId: 'ansible-vault-pass',
+                        extras: "-e image_tag=${env.BUILD_NUMBER}",
+                        colorized: true
+                    )
                 }
             }
         }
-
-    stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            kubeconfig(credentialsId: 'kubeconfig-file') {
-                sh 'sed -i "s|image: .*|image: raedaffes/country-service-my-country-service2:$BUILD_NUMBER|" deployment.yaml'
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
-                sh 'kubectl rollout status deployment/my-country-service'
-            }
-        }
-    }
-}
     }
 
-   
+    post {
+        always  { cleanWs() }
+        success { echo 'Ansible playbook executed successfully!' }
+        failure { echo 'Ansible playbook execution failed!' }
+    }
 }
