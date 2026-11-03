@@ -18,17 +18,19 @@ pipeline {
             }
         }
 
-        stage('Deploy using Ansible playbook') {
+        stage('Deploy with Ansible') {
             steps {
-                kubeconfig(credentialsId: 'kubeconfig-file') {
-                    ansiblePlaybook(
-                        installation: 'myansible',
-                        playbook: 'playbookCICD.yml',
-                        inventory: 'inventory.ini',
-                        vaultCredentialsId: 'ansible-vault-pass',
-                        extras: "-e image_tag=${env.BUILD_NUMBER}",
-                        colorized: true
-                    )
+                withCredentials([string(credentialsId: 'DOCKER_HUB', variable: 'VAULT_PASS')]) {
+                    kubeconfig(credentialsId: 'kubeconfig-file') {
+                        sh '''
+                            umask 077
+                            trap 'rm -f vault_pass.txt' EXIT
+                            echo "$VAULT_PASS" > vault_pass.txt
+                            ansible-playbook -i inventory.ini playbookCICD.yml \
+                              --vault-password-file vault_pass.txt \
+                              -e image_tag=$BUILD_NUMBER
+                        '''
+                    }
                 }
             }
         }
